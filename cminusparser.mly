@@ -15,12 +15,12 @@ exception Incorrect_Syntax
 %start program
 %type<Asttype.program>program
 %%
-program				: declaration_list Teof { List.rev $1 }
+program			: declaration_list Teof { List.rev $1 }
 					;
 declaration_list	: declaration_list declaration	{ $2::$1 }
 					| declaration	{ [$1] }
 					;
-declaration			: var_declaration	{ 
+declaration		: var_declaration	{ 
 							match $1 with 
 							VAR_DECL (typespec, name) -> VAR_DECLARATION (typespec, name)
 							|ARRAY_VAR_DECL (typespec, name, index) -> ARRAY_VAR_DECLARATION (typespec, name, index)
@@ -38,13 +38,13 @@ fun_declaration		: type_specifier Tidentifier Tlparen params Trparen compound_st
 							(localDecls, stmts) -> FUN_DECLARATION ($1, $2, $4, localDecls, stmts) 
 							}
 					;
-params				: param_list { List.rev $1 }
+params			: param_list { List.rev $1 }
 					| Tvoid	{ [] }
 					;
-param_list			: param_list Tcomma param	{ $3::$1 }
+param_list		: param_list Tcomma param	{ $3::$1 }
 					| param	{ [$1] }
 					;
-param				: type_specifier Tidentifier { PARAM ($1, $2) }
+param			: type_specifier Tidentifier { PARAM ($1, $2) }
 					| type_specifier Tidentifier Tlbracket Trbracket { ARRAY_PARAM ($1, $2) }
 					;
 compound_stmt		: Tlbrace local_declarations statement_list Trbrace	{ (List.rev $2, List.rev $3) }
@@ -59,7 +59,7 @@ statement_list		: statement_list statement {
 					}
 					| {	[] }
 					;
-statement			: expression_stmt	{ $1 }
+statement		: expression_stmt	{ $1 }
 					| compound_stmt		{ 
 							match $1 with 
 							(localDecl, stmts) -> COMPOUND_STMT (localDecl, stmts) }
@@ -75,10 +75,10 @@ selection_stmt		: Tif Tlparen expression Trparen statement { SELECTION_STMT ($3,
 					;
 iteration_stmt		: Twhile Tlparen expression Trparen statement { ITERATION_STMT ($3, $5) }
 					;
-return_stmt			: Treturn Tsemicolon { RETURN_STMT None }
+return_stmt		: Treturn Tsemicolon { RETURN_STMT None }
 					| Treturn expression Tsemicolon { RETURN_STMT (Some $2) }
 					;
-expression			: var Tassign expression { 
+expression		: var Tassign expression { 
 							match $1 with
 							(name, exprOption) -> 
 								match exprOption with
@@ -86,7 +86,7 @@ expression			: var Tassign expression {
 								|Some expr -> ARRAY_ASSIGN_EXPRESSION (name, expr, $3) }
 					| simple_expression { $1 }
 					;
-var					: Tidentifier { ($1, None) }
+var			: Tidentifier { ($1, None) }
 					| Tidentifier Tlbracket expression Trbracket { ($1, Some $3) }
 					;
 simple_expression	: additive_expression relop additive_expression { 
@@ -103,14 +103,14 @@ simple_expression	: additive_expression relop additive_expression {
 					 }
 					| additive_expression { ARITHMATIC_EXPRESSION $1 }
 					;
-relop				: Tle	{ Tle }
+relop			: Tle	{ Tle }
 					| Tlt	{ Tlt }
 					| Tgt	{ Tgt }
 					| Tge	{ Tge }
 					| Tequal{ Tequal }
 					| Tne	{ Tne }
 					;
-additive_expression : additive_expression addop term {						
+additive_expression	: additive_expression addop term {						
 						match $2 with
 						Tplus -> PLUS ($1, $3)
 						|Tdash -> MINUS ($1, $3)
@@ -118,10 +118,10 @@ additive_expression : additive_expression addop term {
 					}
 					| term	{ $1 }
 					;
-addop				: Tplus	{ Tplus }
+addop			: Tplus	{ Tplus }
 					| Tdash	{ Tdash }
 					;
-term				: term mulop factor	{					
+term			: term mulop factor	{					
 						match $2 with
 						Ttimes -> MULTIPLY ($1, $3)
 						|Tslash -> DIV ($1, $3)
@@ -129,10 +129,10 @@ term				: term mulop factor	{
 					}
 					| factor { $1 }
 					;
-mulop				: Ttimes { Ttimes }
+mulop			: Ttimes { Ttimes }
 					| Tslash { Tslash }
 					;
-factor				: Tlparen expression Trparen { EXPRESSION $2 }
+factor			: Tlparen expression Trparen { EXPRESSION $2 }
 					| var	{								
 						match $1 with
 						(name, exprOption) -> 
@@ -143,11 +143,11 @@ factor				: Tlparen expression Trparen { EXPRESSION $2 }
 					| call	{ $1 }
 					| Tnum	{ NUM $1 }
 					;
-call				: Tidentifier Tlparen args Trparen { CALL ($1, $3) }
+call			: Tidentifier Tlparen args Trparen { CALL ($1, $3) }
 					;
-args				: arg_list { List.rev $1 }
+args			: arg_list { List.rev $1 }
 					| { [] }
 					;
-arg_list			: arg_list Tcomma expression { $3::$1 }
+arg_list		: arg_list Tcomma expression { $3::$1 }
 					| expression { [$1] }
 					;
